@@ -31,6 +31,13 @@ contract_id = 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token'
 
 [[project.requirements]]
 contract_id = 'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3'
+[[project.requirements]]
+contract_id = 'SP102V8P0F7JX67ARQ77WEA3D3CFB5XW39REDT0AM.amm-pool-v2-01'
+[contracts.vault-contract-v1]
+path = 'contracts/vault-contract-v1.clar'
+clarity_version = 3
+epoch = 3.0
+
 [contracts.vault-contract-v2]
 path = 'contracts/vault-contract-v2.clar'
 clarity_version = 3

@@ -60,6 +60,14 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
+            contract-name: vault-contract-v1
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/vault-contract-v1.clar
+            clarity-version: 3
+      epoch: "3.0"
+    - id: 1
+      transactions:
+        - emulated-contract-publish:
             contract-name: vault-contract-v2
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/vault-contract-v2.clar
