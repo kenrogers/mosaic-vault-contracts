@@ -86,7 +86,7 @@ it(
     const { result: navResult } = simnet.callReadOnlyFn(
       CONTRACT_NAME,
       "get-nav",
-      [Cl.list(approved_assets.map((asset) => Cl.principal(asset.asset)))],
+      [Cl.list(approved_assets.map((asset) => Cl.principal(asset.asset))), Cl.none()],
       address1
     );
     console.log(cvToValue(navResult));
@@ -94,10 +94,10 @@ it(
     simnet.execute("burn-block-height");
     const { result: navResultAt } = simnet.callReadOnlyFn(
       CONTRACT_NAME,
-      "get-nav-at",
+      "get-nav",
       [
-        Cl.uint(741817),
         Cl.list(approved_assets.map((asset) => Cl.principal(asset.asset))),
+        Cl.some(Cl.uint(741817)),
       ],
       address1
     );

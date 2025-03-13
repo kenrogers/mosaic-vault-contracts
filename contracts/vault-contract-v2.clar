@@ -59,7 +59,7 @@
         (asserts! (is-some (map-get? approved-assets asset)) ERR-UNSUPPORTED-ASSET)
         (map-set asset-weights asset weight)
         (ok true)))
-        
+
 ;; read only functions
 ;;
 (define-read-only (get-name) (ok (var-get token-name)))
@@ -72,7 +72,7 @@
 (define-read-only (get-approved-nonce) (ok (var-get approved-nonce)))
 (define-read-only (get-all-approved-assets) (ok (filter is-valid-principal (map unwrap-asset-id (list u1 u2 u3)))))
 
-(define-private (get-price-diko (token (string-ascii 12))) 
+(define-private (get-price-diko (token (string-ascii 12)))
     (contract-call? 'SP2C2YFP12AJZB4MABJBAJ55XECVS7E4PMMZ89YZR.arkadiko-oracle-v2-3 get-price token))
 
 (define-private (get-price-pyth (id (buff 32)))
@@ -143,7 +143,7 @@
             asset: ctx,
             balance: balance,
             weight: (default-to u0 (map-get? asset-weights ctx)),
-            value-usd: (if 
+            value-usd: (if
                 (and (> balance u0) (> price-usd u0)) (/ (* balance price-usd) ONE_8) u0)
         })
     ))
@@ -157,19 +157,28 @@
 
 ;; Get the Net Asset Value (NAV) of the vault
 ;; Iterates through all approved assets and sums their USD values
-(define-read-only (get-nav (assets (list 3 <ft-trait>)))
-    (ok (fold calculate-total-value assets u0)))
+(define-read-only (get-nav (assets (list 3 <ft-trait>)) (at-height (optional uint)))
+    (let (
+        (height (unwrap! at-height (err u1)))
+    )
+        ;; (ok height)
+        (if (is-some at-height)
+            (ok (calculate-total-value-at assets height))
+            (ok (fold calculate-total-value assets u0))
+        )
+    )
+)
 
 ;; (define-read-only (get-nav-history (blocks (list 50 uint)))
 ;;     (ok (map get-nav-at-block blocks)))
 
-(define-read-only (get-nav-at (height uint) (assets (list 3 <ft-trait>)))
-    (let (
-        (hash (unwrap-panic (get-stacks-block-info? id-header-hash height)))
-        (nav (at-block hash (get-nav assets)))
-    )
-        {height: height, nav: nav }
-    ))
+;; (define-read-only (get-nav-at (height uint) (assets (list 3 <ft-trait>)))
+;;     (let (
+;;         (hash (unwrap-panic (get-stacks-block-info? id-header-hash height)))
+;;         (nav (at-block hash (get-nav assets)))
+;;     )
+;;         {height: height, nav: nav }
+;;     ))
 
 ;; Helper function to calculate the total value by summing up each asset's USD value
 (define-private (calculate-total-value (asset <ft-trait>) (current-total uint))
@@ -181,7 +190,32 @@
   )
 )
 
+(define-private (calculate-total-value-at (assets (list 3 <ft-trait>)) (height uint))
+  (let (
+    (hash (unwrap-panic (get-stacks-block-info? id-header-hash height)))
+    (asset-1 (unwrap-panic (element-at? assets u0)))
+    (asset-2 (unwrap-panic (element-at? assets u1)))
+    (asset-3 (unwrap-panic (element-at? assets u2)))
+    (asset-1-info (unwrap-panic (get-asset-info asset-1)))
+    (asset-2-info (unwrap-panic (get-asset-info asset-2)))
+    (asset-3-info (unwrap-panic (get-asset-info asset-3)))
+    (asset-1-value (at-block hash (get value-usd asset-1-info)))
+    (asset-2-value (at-block hash (get value-usd asset-2-info)))
+    (asset-3-value (at-block hash (get value-usd asset-3-info)))
+  )
+    (+ asset-1-value asset-2-value asset-3-value)
+  )
+)
 
+(define-private (get-value-at (asset <ft-trait>) (height uint))
+  (let (
+    (hash (unwrap-panic (get-stacks-block-info? id-header-hash height)))
+    (asset-info (unwrap-panic (at-block hash (get-asset-info asset))))
+    (asset-value (get value-usd asset-info))
+  )
+    asset-value
+  )
+)
 ;; private functions
 ;;
 (define-private (unwrap-asset-id (id uint))
@@ -251,10 +285,10 @@
         (get-balance-sbtc)
         ERR-UNSUPPORTED-ASSET  ;; Return 0 if asset not recognized
     ))))
-(begin 
+(begin
     (var-set token-name "ft-name")
     (var-set token-symbol "ft-name")
-    (set-approved-assets-and-weights (list 
+    (set-approved-assets-and-weights (list
         {asset: 'SP1E0XBN9T4B10E9QMR7XMFJPMA19D77WY3KP2QKC.token-wststx, weight: u3000}
         {asset: 'SP2XD7417HGPRTREMKF748VNEQPDRR0RMANB7X1NK.token-susdt, weight: u3000}
         {asset: 'SP1E0XBN9T4B10E9QMR7XMFJPMA19D77WY3KP2QKC.token-wsbtc, weight: u4000}
